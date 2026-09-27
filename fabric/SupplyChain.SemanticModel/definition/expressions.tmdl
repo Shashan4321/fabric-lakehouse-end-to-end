@@ -1,0 +1,7 @@
+/// Direct Lake source: the SQL analytics endpoint of Lakehouse lh_supplychain.
+/// Replace the server and endpoint id with the values from your workspace.
+expression DatabaseQuery =
+		let
+		    database = Sql.Database("<your-endpoint>.datawarehouse.fabric.microsoft.com", "<lakehouse-sql-endpoint-id>")
+		in
+		    database

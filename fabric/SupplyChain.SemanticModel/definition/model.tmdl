@@ -1,0 +1,11 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+
+ref table dim_date
+ref table dim_item
+ref table dim_supplier
+ref table dim_warehouse
+ref table fact_po_line
+ref table fact_inventory_monthly

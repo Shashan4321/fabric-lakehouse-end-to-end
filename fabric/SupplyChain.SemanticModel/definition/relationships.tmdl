@@ -1,0 +1,23 @@
+relationship fact_po_line_order_date_key
+	fromColumn: fact_po_line.order_date_key
+	toColumn: dim_date.date_key
+
+relationship fact_po_line_supplier_key
+	fromColumn: fact_po_line.supplier_key
+	toColumn: dim_supplier.supplier_key
+
+relationship fact_po_line_item_key
+	fromColumn: fact_po_line.item_key
+	toColumn: dim_item.item_key
+
+relationship fact_po_line_warehouse_key
+	fromColumn: fact_po_line.warehouse_key
+	toColumn: dim_warehouse.warehouse_key
+
+relationship fact_inventory_monthly_item_key
+	fromColumn: fact_inventory_monthly.item_key
+	toColumn: dim_item.item_key
+
+relationship fact_inventory_monthly_warehouse_key
+	fromColumn: fact_inventory_monthly.warehouse_key
+	toColumn: dim_warehouse.warehouse_key
