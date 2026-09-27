@@ -1,0 +1,40 @@
+table dim_item
+
+	column item_key
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: item_key
+
+	column item_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: item_code
+
+	column item_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: item_name
+
+	column category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: category
+
+	column uom
+		dataType: string
+		summarizeBy: none
+		sourceColumn: uom
+
+	column unit_cost
+		dataType: decimal
+		summarizeBy: none
+		sourceColumn: unit_cost
+
+	partition dim_item = entity
+		mode: directLake
+		source
+			entityName: dim_item
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

@@ -1,0 +1,72 @@
+table fact_inventory_monthly
+
+	/// Semi-additive: closing quantity at the latest month in context.
+	measure 'Closing Stock Qty' =
+			VAR _last = MAX ( fact_inventory_monthly[year_month] )
+			RETURN
+				CALCULATE ( SUM ( fact_inventory_monthly[closing_qty] ), fact_inventory_monthly[year_month] = _last )
+		formatString: #,0
+		displayFolder: Inventory
+
+	/// Semi-additive: closing stock value at the latest month in context.
+	measure 'Closing Stock Value' =
+			VAR _last = MAX ( fact_inventory_monthly[year_month] )
+			RETURN
+				CALCULATE ( SUM ( fact_inventory_monthly[closing_value] ), fact_inventory_monthly[year_month] = _last )
+		formatString: ₹ #,0
+		displayFolder: Inventory
+
+	/// Units received in the period.
+	measure 'Qty Received' = SUM ( fact_inventory_monthly[qty_in] )
+		formatString: #,0
+		displayFolder: Inventory
+
+	/// Units issued in the period.
+	measure 'Qty Issued' = SUM ( fact_inventory_monthly[qty_out] )
+		formatString: #,0
+		displayFolder: Inventory
+
+	column item_key
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: item_key
+
+	column warehouse_key
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: warehouse_key
+
+	column year_month
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: year_month
+
+	column qty_in
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: qty_in
+
+	column qty_out
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: qty_out
+
+	column closing_qty
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: closing_qty
+
+	column closing_value
+		dataType: decimal
+		summarizeBy: none
+		sourceColumn: closing_value
+
+	partition fact_inventory_monthly = entity
+		mode: directLake
+		source
+			entityName: fact_inventory_monthly
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

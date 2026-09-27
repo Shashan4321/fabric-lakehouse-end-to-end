@@ -1,0 +1,167 @@
+table fact_po_line
+
+	/// Number of purchase-order lines.
+	measure 'PO Lines' = COUNTROWS ( fact_po_line )
+		formatString: #,0
+		displayFolder: Volume
+
+	/// Ordered quantity x unit price.
+	measure 'Order Value' = SUM ( fact_po_line[order_value] )
+		formatString: ₹ #,0
+		displayFolder: Value
+
+	/// Received quantity x unit price.
+	measure 'Received Value' = SUM ( fact_po_line[received_value] )
+		formatString: ₹ #,0
+		displayFolder: Value
+
+	/// PO lines with at least one receipt.
+	measure 'Delivered Lines' = CALCULATE ( COUNTROWS ( fact_po_line ), NOT ISBLANK ( fact_po_line[first_receipt_date] ) )
+		formatString: #,0
+		displayFolder: Volume
+
+	/// Share of delivered lines received in full on or before the promised date.
+	measure 'OTIF %' = DIVIDE ( SUM ( fact_po_line[is_otif] ), [Delivered Lines] )
+		formatString: 0.0%
+		displayFolder: Supplier Performance
+
+	/// First receipt on or before the promised date.
+	measure 'On-Time %' = DIVIDE ( SUM ( fact_po_line[is_on_time] ), [Delivered Lines] )
+		formatString: 0.0%
+		displayFolder: Supplier Performance
+
+	/// Total received quantity >= ordered quantity.
+	measure 'In-Full %' = DIVIDE ( SUM ( fact_po_line[is_in_full] ), [Delivered Lines] )
+		formatString: 0.0%
+		displayFolder: Supplier Performance
+
+	/// Days from order to first receipt.
+	measure 'Avg Lead Time (days)' = AVERAGE ( fact_po_line[lead_time_days] )
+		formatString: 0.0
+		displayFolder: Supplier Performance
+
+	/// OTIF in the same period last year.
+	measure 'OTIF % PY' = CALCULATE ( [OTIF %], SAMEPERIODLASTYEAR ( dim_date[date] ) )
+		formatString: 0.0%
+		displayFolder: Supplier Performance
+
+	/// Change in OTIF vs last year, in percentage points.
+	measure 'OTIF Change (pts)' = IF ( NOT ISBLANK ( [OTIF % PY] ), ( [OTIF %] - [OTIF % PY] ) * 100 )
+		formatString: +0.0;-0.0;0.0
+		displayFolder: Supplier Performance
+
+	/// 1 = worst OTIF in the current selection (who to call first).
+	measure 'Supplier OTIF Rank' =
+			IF (
+				HASONEVALUE ( dim_supplier[supplier_code] ),
+				RANKX ( ALLSELECTED ( dim_supplier[supplier_code] ), [OTIF %],, ASC, DENSE )
+			)
+		formatString: 0
+		displayFolder: Supplier Performance
+
+	column po_number
+		dataType: string
+		summarizeBy: none
+		sourceColumn: po_number
+
+	column po_line
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: po_line
+
+	column supplier_key
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: supplier_key
+
+	column item_key
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: item_key
+
+	column warehouse_key
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: warehouse_key
+
+	column order_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: order_date
+
+	column promised_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: promised_date
+
+	column ordered_qty
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: ordered_qty
+
+	column unit_price
+		dataType: decimal
+		summarizeBy: none
+		sourceColumn: unit_price
+
+	column first_receipt_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: first_receipt_date
+
+	column last_receipt_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: last_receipt_date
+
+	column order_value
+		dataType: decimal
+		summarizeBy: none
+		sourceColumn: order_value
+
+	column received_qty
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: received_qty
+
+	column received_value
+		dataType: decimal
+		summarizeBy: none
+		sourceColumn: received_value
+
+	column lead_time_days
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: lead_time_days
+
+	column is_on_time
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: is_on_time
+
+	column is_in_full
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: is_in_full
+
+	column is_otif
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: is_otif
+
+	column order_date_key
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: order_date_key
+
+	partition fact_po_line = entity
+		mode: directLake
+		source
+			entityName: fact_po_line
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+
