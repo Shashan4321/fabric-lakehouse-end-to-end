@@ -1,0 +1,50 @@
+{
+  "name": "pl_supplychain_medallion",
+  "properties": {
+    "description": "Landing -> Bronze -> Silver/Gold -> DQ gate -> refresh semantic model. Schedule: daily 06:00 IST.",
+    "activities": [
+      {
+        "name": "Bronze ingest",
+        "type": "TridentNotebook",
+        "dependsOn": [],
+        "policy": { "timeout": "0.01:00:00", "retry": 1, "retryIntervalInSeconds": 120 },
+        "typeProperties": {
+          "notebookId": "<01_bronze_ingest notebook id>",
+          "workspaceId": "<workspace id>"
+        }
+      },
+      {
+        "name": "Silver and Gold",
+        "type": "TridentNotebook",
+        "dependsOn": [ { "activity": "Bronze ingest", "dependencyConditions": [ "Succeeded" ] } ],
+        "policy": { "timeout": "0.01:00:00", "retry": 1, "retryIntervalInSeconds": 120 },
+        "typeProperties": {
+          "notebookId": "<02_silver_gold_transform notebook id>",
+          "workspaceId": "<workspace id>"
+        }
+      },
+      {
+        "name": "Data quality gate",
+        "type": "TridentNotebook",
+        "dependsOn": [ { "activity": "Silver and Gold", "dependencyConditions": [ "Succeeded" ] } ],
+        "policy": { "timeout": "0.00:20:00", "retry": 0 },
+        "typeProperties": {
+          "notebookId": "<03_data_quality_gate notebook id>",
+          "workspaceId": "<workspace id>"
+        }
+      },
+      {
+        "name": "Refresh semantic model",
+        "type": "PBISemanticModelRefresh",
+        "dependsOn": [ { "activity": "Data quality gate", "dependencyConditions": [ "Succeeded" ] } ],
+        "typeProperties": {
+          "method": "post",
+          "waitOnCompletion": true,
+          "commitMode": "Transactional",
+          "datasetId": "<SupplyChain semantic model id>",
+          "groupId": "<workspace id>"
+        }
+      }
+    ]
+  }
+}
