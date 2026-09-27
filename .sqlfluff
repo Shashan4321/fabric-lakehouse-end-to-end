@@ -1,0 +1,11 @@
+[sqlfluff]
+dialect = sparksql
+templater = jinja
+max_line_length = 100
+exclude_rules = ST06, AM04, RF04, ST05, CV11, AL05, RF02, RF03
+
+[sqlfluff:templater:jinja:macros]
+days_between = {% macro days_between(a, b) %}DATEDIFF({{ b }}, {{ a }}){% endmacro %}
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper
